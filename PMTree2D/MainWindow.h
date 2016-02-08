@@ -22,7 +22,7 @@ protected:
 public slots:
 	void onRandomGeneration();
 	void onGenerateTrainingData();
-	void onGenerateLocalTrainingData();
+	void onGeneratePredictedData();
 };
 
 #endif // MAINWINDOW_H

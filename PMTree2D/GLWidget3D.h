@@ -28,7 +28,7 @@ public:
 public:
 	GLWidget3D(MainWindow *parent);
 	void generateTrainingData();
-	void generateLocalTrainingData();
+	void generatePredictedData();
 	void render();
 	void drawScene();
 

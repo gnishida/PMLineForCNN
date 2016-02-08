@@ -83,7 +83,54 @@ void GLWidget3D::generateTrainingData() {
 	file.close();
 }
 
-void GLWidget3D::generateLocalTrainingData() {
+void GLWidget3D::generatePredictedData() {
+	QString resultDir = "C:\\Anaconda\\caffe\\data\\pmline\\pmline_predicted\\";
+	if (QDir(resultDir).exists()) {
+		QDir(resultDir).removeRecursively();
+	}
+	QDir().mkpath(resultDir);
+
+	QFile file("predicted_results.txt");
+	if (file.open(QIODevice::ReadOnly)) {
+		QTextStream in(&file);
+		int n = 0;
+		while (!in.atEnd()) {
+			tree.root->curvesV.resize(0);
+
+			QStringList data = in.readLine().split(",");
+			for (int i = 0; i < data.size(); ++i) {
+				float v = data[i].toFloat();
+				tree.root->curvesV.push_back(v * 40.0f - 20.0f);
+			}
+
+			// 木を生成
+			renderManager.removeObjects();
+			tree.generateGeometry(&renderManager);
+
+			// 画像を生成
+			render();
+
+			QImage img = grabFrameBuffer();
+			cv::Mat sourceImage(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine());
+			cv::Mat grayImage;
+			cv::cvtColor(sourceImage, grayImage, CV_RGB2GRAY);
+
+			// 画像を縮小
+			cv::resize(grayImage, grayImage, cv::Size(512, 512));
+			cv::threshold(grayImage, grayImage, 100, 255, CV_THRESH_BINARY);
+			cv::resize(grayImage, grayImage, cv::Size(256, 256));
+			cv::threshold(grayImage, grayImage, 100, 255, CV_THRESH_BINARY);
+			cv::resize(grayImage, grayImage, cv::Size(128, 128));
+			cv::threshold(grayImage, grayImage, 100, 255, CV_THRESH_BINARY);
+
+			// write the iamge to file
+			QString filename = resultDir + QString("image_%1.png").arg(n, 6, 10, QChar('0'));
+
+			cv::imwrite(filename.toUtf8().constData(), grayImage);
+
+			n++;
+		}
+	}
 }
 
 void GLWidget3D::render() {
